@@ -15,12 +15,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Data
 @Builder
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@SQLDelete(sql = "UPDATE customers SET is_active = false WHERE id=?")
+@SQLRestriction("is_active=true")
 @Table(name = "customers")
 public class Customer {
     @Id
@@ -37,10 +41,11 @@ public class Customer {
     @Column(length = 14)
     private String phone;
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
+    private Boolean isActive;
 
     @PrePersist
     protected void onCreate() {
+        isActive = true;
         created = System.currentTimeMillis();
         updated = System.currentTimeMillis();
     }
@@ -66,5 +71,3 @@ public class Customer {
         updated = dateTime.atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
     }
 }
-
-
