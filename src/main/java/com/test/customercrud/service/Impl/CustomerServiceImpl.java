@@ -28,24 +28,19 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public List<CustomerResponseDTO> getAll() {
         return customerRepository.findAll().stream()
-                .filter(Customer::getIsActive)
                 .map(customerMapper::toCustomerResponseDTO)
                 .toList();
     }
 
     @Override
     public CustomerResponseDTO get(Long id) {
-        Customer customer = customerRepository.findById(id)
-                .filter(Customer::getIsActive)
-                .orElseThrow(() -> new CustomerNotFoundException("Customer not found with id: %s".formatted(id)));
+        Customer customer = isPresent(id);
         return customerMapper.toCustomerResponseDTO(customer);
     }
 
     @Override
     public CustomerResponseDTO update(Long id, CustomerUpdateRequestDTO dto) {
-        Customer customer = customerRepository.findById(id)
-                .filter(Customer::getIsActive)
-                .orElseThrow(() -> new CustomerNotFoundException("Customer not found with id: %s".formatted(id)));
+        Customer customer = isPresent(id);
         customerMapper.updateCustomerFromDTO(dto, customer);
         customer = customerRepository.save(customer);
         return customerMapper.toCustomerResponseDTO(customer);
@@ -53,10 +48,12 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public void delete(Long id) {
-        Customer customer = customerRepository.findById(id)
-                .filter(Customer::getIsActive)
+        isPresent(id);
+        customerRepository.deleteById(id);
+    }
+
+    private Customer isPresent(Long id) {
+        return customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found with id: %s".formatted(id)));
-        customer.setIsActive(false);
-        customerRepository.save(customer);
     }
 }

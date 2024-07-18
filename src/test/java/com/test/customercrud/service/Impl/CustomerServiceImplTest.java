@@ -20,16 +20,16 @@ import static com.test.customercrud.service.Impl.CustomerServiceImplTest.TestRes
 import static com.test.customercrud.service.Impl.CustomerServiceImplTest.TestResources.buildCustomerCreateRequestDTO;
 import static com.test.customercrud.service.Impl.CustomerServiceImplTest.TestResources.buildCustomerResponseDTO;
 import static com.test.customercrud.service.Impl.CustomerServiceImplTest.TestResources.buildCustomerUpdateRequestDTO;
-import static com.test.customercrud.service.Impl.CustomerServiceImplTest.TestResources.buildDeletedCustomer;
 import static com.test.customercrud.service.Impl.CustomerServiceImplTest.TestResources.buildSavedCustomer;
 import static com.test.customercrud.service.Impl.CustomerServiceImplTest.TestResources.buildUpdatedCustomer;
 import static com.test.customercrud.service.Impl.CustomerServiceImplTest.TestResources.buildUpdatedCustomerResponseDTO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CustomerServiceImplTest {
+class CustomerServiceImplTest {
     @Mock
     private CustomerRepository customerRepository;
     @Mock(answer = Answers.CALLS_REAL_METHODS)
@@ -38,7 +38,7 @@ public class CustomerServiceImplTest {
     private CustomerServiceImpl customerService;
 
     @Test
-    public void givenCreateCustomerRequest_whenCreate_thenCustomerCreated() {
+    void givenCreateCustomerRequest_whenCreate_thenCustomerCreated() {
         when(customerRepository.save(buildCustomer())).thenReturn(buildSavedCustomer());
         CustomerResponseDTO responseDTO = customerService.create(buildCustomerCreateRequestDTO());
 
@@ -46,7 +46,7 @@ public class CustomerServiceImplTest {
     }
 
     @Test
-    public void givenCustomersExist_whenGetAll_thenAllActiveCustomersReturned() {
+    void givenCustomersExist_whenGetAll_thenAllActiveCustomersReturned() {
         when(customerRepository.findAll()).thenReturn(List.of(buildSavedCustomer()));
         List<CustomerResponseDTO> responseDTOs = customerService.getAll();
 
@@ -54,7 +54,7 @@ public class CustomerServiceImplTest {
     }
 
     @Test
-    public void givenCustomerId_whenGet_thenCustomerReturned() {
+    void givenCustomerId_whenGet_thenCustomerReturned() {
         when(customerRepository.findById(CUSTOMER_ID)).thenReturn(Optional.of(buildSavedCustomer()));
         CustomerResponseDTO responseDTO = customerService.get(CUSTOMER_ID);
 
@@ -62,7 +62,7 @@ public class CustomerServiceImplTest {
     }
 
     @Test
-    public void givenInvalidCustomerId_whenGet_thenCustomerNotFoundExceptionThrown() {
+    void givenInvalidCustomerId_whenGet_thenCustomerNotFoundExceptionThrown() {
         when(customerRepository.findById(CUSTOMER_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> customerService.get(CUSTOMER_ID))
@@ -71,7 +71,7 @@ public class CustomerServiceImplTest {
     }
 
     @Test
-    public void givenUpdateCustomerRequest_whenUpdate_thenCustomerUpdated() {
+    void givenUpdateCustomerRequest_whenUpdate_thenCustomerUpdated() {
         when(customerRepository.findById(CUSTOMER_ID)).thenReturn(Optional.of(buildSavedCustomer()));
         when(customerRepository.save(buildUpdatedCustomer())).thenReturn(buildUpdatedCustomer());
         CustomerResponseDTO responseDTO = customerService.update(CUSTOMER_ID, buildCustomerUpdateRequestDTO());
@@ -80,7 +80,7 @@ public class CustomerServiceImplTest {
     }
 
     @Test
-    public void givenInvalidCustomerId_whenUpdate_thenCustomerNotFoundExceptionThrown() {
+    void givenInvalidCustomerId_whenUpdate_thenCustomerNotFoundExceptionThrown() {
         when(customerRepository.findById(CUSTOMER_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> customerService.update(CUSTOMER_ID, buildCustomerUpdateRequestDTO()))
@@ -89,16 +89,14 @@ public class CustomerServiceImplTest {
     }
 
     @Test
-    public void givenCustomerId_whenDelete_thenCustomerDeactivated() {
-        Customer activeCustomer = buildSavedCustomer();
-        when(customerRepository.findById(CUSTOMER_ID)).thenReturn(Optional.of(activeCustomer));
+    void givenCustomerId_whenDelete_thenCustomerDeactivated() {
+        when(customerRepository.findById(CUSTOMER_ID)).thenReturn(Optional.of(buildSavedCustomer()));
         customerService.delete(CUSTOMER_ID);
-
-        assertThat(activeCustomer).isEqualTo(buildDeletedCustomer());
+        verify(customerRepository).deleteById(CUSTOMER_ID);
     }
 
     @Test
-    public void givenInvalidCustomerId_whenDelete_thenCustomerNotFoundExceptionThrown() {
+    void givenInvalidCustomerId_whenDelete_thenCustomerNotFoundExceptionThrown() {
         when(customerRepository.findById(CUSTOMER_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> customerService.delete(CUSTOMER_ID))
